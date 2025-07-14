@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using System.Xml.Linq;
 using Newtonsoft.Json;
+using Extensions0121.Exceptions;
 
 namespace JsonToCSharpConverter0121.Internal;
 
@@ -46,11 +47,38 @@ internal class JsonToCSharpConvert
             return;
         }
 
+        RecordDeclarationSyntax record = _options.PropertyCreationMethod.Type switch
+        {
+            PropertyCreationType.PositionalParameters => PropertiesByPositionalParameters(element, recordName),
+            PropertyCreationType.InitAutoProperties => InitAutoPropertiesParameters(element, recordName),
+            _ => throw ThrowHelper.EnumExhausted(nameof(PropertyCreationType)),
+        };
+
+        _records[recordName] = record;
+    }
+
+    private RecordDeclarationSyntax InitAutoPropertiesParameters(JsonElement element, string recordName)
+    {
+        var propertyDeclarations = element.EnumerateObject().Select(e => CreateParameterInitAutoProperty(e, recordName));
+
+        var record = SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier(recordName))
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+            .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(propertyDeclarations))
+            .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+            .NormalizeWhitespace(elasticTrivia: true);
+
+        return record;
+    }
+
+    private RecordDeclarationSyntax PropertiesByPositionalParameters(JsonElement element, string recordName)
+    {
+
         var propertyCount = element.GetPropertyCount();
 
-        var properties = element.EnumerateObject().Select(e => CreateParameter(e, recordName));
+        var properties = element.EnumerateObject().Select(e => CreateParameterPropertyByPositional(e, recordName));
 
-        var separatedList = _options.HavePropertiesOnNewLine.DoesNotRequiresNewLine(propertyCount)
+        var separatedList = _options.PropertyCreationMethod.HavePropertiesOnNewLine.DoesNotRequiresNewLine(propertyCount)
             ? SyntaxFactory.SeparatedList(properties.Select(p => p.NormalizeWhitespace()))
             : SyntaxFactory.SeparatedList<ParameterSyntax>(
                 properties.Select((prop, index) =>
@@ -63,7 +91,7 @@ internal class JsonToCSharpConvert
                     }
                 ).SelectMany(x => x).Where(x => x != null));
 
-        var parameterList = _options.HavePropertiesOnNewLine.DoesNotRequiresNewLine(propertyCount)
+        var parameterList = _options.PropertyCreationMethod.HavePropertiesOnNewLine.DoesNotRequiresNewLine(propertyCount)
             ? SyntaxFactory.ParameterList(separatedList).NormalizeWhitespace()
                 .WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                 .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken))
@@ -78,12 +106,9 @@ internal class JsonToCSharpConvert
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .NormalizeWhitespace(elasticTrivia: true)
             .WithParameterList(parameterList)
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)); 
-
-
-        _records[recordName] = record;
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        return record;
     }
-
 
     private static string GetCSharpType(JsonElement element) => element.ValueKind switch
     {
@@ -95,14 +120,39 @@ internal class JsonToCSharpConvert
         _ => "object"
     };
 
-    private ParameterSyntax CreateParameter(JsonProperty prop, string typePath)
+    private ParameterSyntax CreateParameterPropertyByPositional(JsonProperty prop, string typePath)
     {
         var propertyTypeName = prop.Name.ConvertToCSharpPropertyName();
 
         string typeName = GetCSharpType(prop, propertyTypeName, typePath);
         return SyntaxFactory.Parameter(SyntaxFactory.Identifier(propertyTypeName))
             .WithType(SyntaxFactory.ParseTypeName($"{typeName}{_options.Nullable.GetNullabilitySuffix(prop.Value)}"))
-            .AddJsonPropertyAttributeIfRequired(propertyTypeName, prop.Name);
+            .AddJsonPropertyAttributeIfRequired(prop.Name);
+    }
+
+    private PropertyDeclarationSyntax CreateParameterInitAutoProperty(JsonProperty prop, string typePath)
+    {
+        var propertyTypeName = prop.Name.ConvertToCSharpPropertyName();
+        string typeName = GetCSharpType(prop, propertyTypeName, typePath);
+
+        var propertyType = SyntaxFactory.ParseTypeName($"{typeName}{_options.Nullable.GetNullabilitySuffix(prop.Value)}");
+
+        var property = SyntaxFactory.PropertyDeclaration(propertyType, propertyTypeName)
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+            .WithAccessorList(
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.List(new[]
+                    {
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                    })
+                )
+            )
+            .AddJsonPropertyAttributeIfRequired(prop.Name);
+
+        return property;
     }
 
 

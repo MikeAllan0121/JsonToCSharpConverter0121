@@ -37,5 +37,8 @@ internal static class StringExtensions
             : cleanedName;
     }
 
-    public static bool HasIllegalJsonChars(this string name) => name.Any(ch => !char.IsLetterOrDigit(ch));
+    public static bool HasIllegalJsonChars(this string name)
+        => string.IsNullOrEmpty(name)
+        || !char.IsLetter(name[0]) 
+        || name.Any(ch => !char.IsLetterOrDigit(ch));
 }

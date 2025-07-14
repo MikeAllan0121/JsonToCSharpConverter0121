@@ -5,7 +5,7 @@ public class CSharpToJson0121Options
     private const string ROOT = "Root";
     public Nullable Nullable { get; set; }
 
-    public HavePropertiesOnNewLine HavePropertiesOnNewLine { get; set; } = HavePropertiesOnNewLine.Yes();
+    public PropertyCreationMethod PropertyCreationMethod { get; set; } = PropertyCreationMethod.PositionalParameters();
 
     public string RootRecordName { get; set; } = ROOT;
 

@@ -8,11 +8,11 @@
     <Authors>Mike Allan</Authors>
     <Summary>Converting JSON structures into C# records.</Summary>
     <PackageId>JsonToCSharpConverter0121</PackageId>
-    <Version>1.1.1</Version>
+    <Version>1.2</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Summary>General extensions and helpers</Summary>
+    <Summary>Converting JSON structures into C# records</Summary>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,15 +1,4 @@
-﻿using JsonToCSharpConverter0121;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using Microsoft.CodeAnalysis.Formatting;
-
+﻿using Extensions0121.Result0121;
 
 namespace JsonToCSharpConverter0121.Tests;
 
@@ -19,6 +8,7 @@ public class CSharpToJson0121Tests
     [Fact]
     public void Execute_ValidJson_Success()
     {
+        // arrange
         string json = """
 {
     "name": "Alice",
@@ -36,15 +26,30 @@ public class CSharpToJson0121Tests
     "metadata": null
 }
 """;
-
+        // act
         var csharp = JsonToCSharpConverter.CreateFullText(json);
-        Assert.NotNull(csharp);
-    }
+        // assert
+        var output = """
+            public record Root(
+                string Name,
+                double Age,
+                double Height,
+                bool IsStudent,
+                List<string> Hobbies,
+                Address Address,
+                List<double> Grades,
+                object Metadata
+            );
 
+            public record Address(string Street, string City, string PostalCode, List<string> Residents);
+            """;
+        csharp.AssertOutput(output);
+    }
 
     [Fact]
     public void Execute_NullAllProperties_Success()
     {
+        // arrange
         string json = """
 {
     "name": "Alice",
@@ -63,14 +68,32 @@ public class CSharpToJson0121Tests
 }
 """;
 
+        // act
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.Nullable = Nullable.AllProperties);
-        Assert.NotNull(csharp);
+
+        // assert
+        var output = """
+            public record Root(
+                string? Name,
+                double? Age,
+                double? Height,
+                bool? IsStudent,
+                List<string>? Hobbies,
+                Address? Address,
+                List<double>? Grades,
+                object? Metadata
+            );
+
+            public record Address(string? Street, string? City, string? PostalCode, List<string>? Residents);
+            """;
+        csharp.AssertOutput(output);
     }
 
 
     [Fact]
     public void Execute_NeverOnNewLine_Success()
     {
+        // arrange
         string json = """
 {
     "name": "Alice",
@@ -89,13 +112,22 @@ public class CSharpToJson0121Tests
 }
 """;
 
-        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.HavePropertiesOnNewLine = HavePropertiesOnNewLine.No());
-        Assert.NotNull(csharp);
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.PropertyCreationMethod = PropertyCreationMethod.PositionalParameters(HavePropertiesOnNewLine.No()));
+
+        // assert
+        var output = """
+            public record Root(string Name, double Age, double Height, bool IsStudent, List<string> Hobbies, Address Address, List<double> Grades, object Metadata);
+
+            public record Address(string Street, string City, string PostalCode, List<string> Residents);
+            """;
+        csharp.AssertOutput(output);
     }
 
     [Fact]
     public void Execute_ValidLargeJson_Success()
     {
+        // arrange
         string json = """
 {
   "users": [
@@ -174,13 +206,41 @@ public class CSharpToJson0121Tests
 }
 """;
 
+        // act
         var csharp = JsonToCSharpConverter.CreateFullText(json);
-        Assert.NotNull(csharp);
+        // assert
+        var output = """
+            public record Root(List<Users> Users, Metadata Metadata);
+
+            public record Metadata(string Version, string GeneratedAt, string Source);
+
+            public record Users(
+                double Id,
+                string Name,
+                string Email,
+                Address Address,
+                List<string> PhoneNumbers,
+                Preferences Preferences,
+                List<Orders> Orders
+            );
+
+            public record Orders(double OrderId, string Date, double Total, List<Items> Items);
+
+            public record Items(string ProductId, string Name, double Price);
+
+            public record Preferences(string Theme, Notifications Notifications);
+
+            public record Notifications(bool Email, bool Sms, bool Push);
+
+            public record Address(string Street, string City, string State, string PostalCode);
+            """;
+        csharp.AssertOutput(output);
     }
 
     [Fact]
     public void Execute_ReadOnlyCollection_Success()
     {
+        // arrange
         string json = """
 {
   "users": [
@@ -215,13 +275,25 @@ public class CSharpToJson0121Tests
 }
 """;
 
+        // act
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.ReadOnlyCollections = CollectionType.ReadOnlyCollection);
-        Assert.NotNull(csharp);
+        // assert
+        var output = """
+            public record Root(ReadOnlyCollection<Users> Users, Metadata Metadata);
+
+            public record Metadata(string Version, string GeneratedAt, string Source);
+
+            public record Users(double Id, string Name, string Email, Address Address);
+
+            public record Address(string Street, string City, string State, string PostalCode);
+            """;
+        csharp.AssertOutput(output);
     }
 
     [Fact]
     public void Execute_NestedPositionName_Success()
     {
+        // arrange
         string json = """
 {
   "users": [
@@ -256,13 +328,103 @@ public class CSharpToJson0121Tests
 }
 """;
 
+        // act
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
-        Assert.NotNull(csharp);
+        // assert
+        var output = """
+            public record Root(List<RootUsers> Users, RootMetadata Metadata);
+
+            public record RootMetadata(string Version, string GeneratedAt, string Source);
+
+            public record RootUsers(double Id, string Name, string Email, RootUsersAddress Address);
+
+            public record RootUsersAddress(string Street, string City, string State, string PostalCode);
+            """;
+        csharp.AssertOutput(output);
     }
 
     [Fact]
     public void Execute_IllegalName_Success()
     {
+        // arrange
+        string json = """
+{
+    "1isStudent": false,
+    "#address": {
+        "str2eet": "123 Main St",
+        "1city": "London",
+        "postal Code": "SW1A 1AA",
+        "residents ": ["Alice", "Bob", "Charlie"]
+    },
+    "grades": [85, 90, 78]
+}
+""";
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
+        // assert
+        var output = """
+            public record Root([JsonProperty("1isStudent")] bool _1isStudent, [JsonProperty("#address")] RootAddress Address, List<double> Grades);
+
+            public record RootAddress(string Str2eet, [JsonProperty("1city")] string _1city, [JsonProperty("postal Code")] string PostalCode, [JsonProperty("residents ")] List<string> Residents);
+            """;
+        csharp.AssertOutput(output);
+    }
+
+    [Fact]
+    public void Execute_InitAutoProperties_Success()
+    {
+        // arrange
+        string json = """
+{
+    "name": "Alice",
+    "age": 25,
+    "height": 5.6,
+    "isStudent": false,
+    "hobbies": ["reading", "gaming", "swimming"],
+    "address": {
+        "street": "123 Main St",
+        "city": "London",
+        "postalCode": "SW1A 1AA",
+        "residents": ["Alice", "Bob", "Charlie"]
+    },
+    "grades": [85, 90, 78],
+    "metadata": null
+}
+""";
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.PropertyCreationMethod = PropertyCreationMethod.InitAutoProperties());
+        // assert
+        var output = """
+            public record Root
+            {
+                public string Name { get; init; }
+                public double Age { get; init; }
+                public double Height { get; init; }
+                public bool IsStudent { get; init; }
+                public List<string> Hobbies { get; init; }
+                public Address Address { get; init; }
+                public List<double> Grades { get; init; }
+                public object Metadata { get; init; }
+            }
+
+            public record Address
+            {
+                public string Street { get; init; }
+                public string City { get; init; }
+                public string PostalCode { get; init; }
+                public List<string> Residents { get; init; }
+            }
+            """;
+        csharp.AssertOutput(output);
+    }
+
+
+    [Fact]
+    public void Execute_InitAutoPropertiesIllegalName_Success()
+    {
+        // arrange
         string json = """
 {
     "isStudent": false,
@@ -276,8 +438,37 @@ public class CSharpToJson0121Tests
 }
 """;
 
-        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
-        Assert.NotNull(csharp);
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => {
+            opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName;
+            opt.PropertyCreationMethod = PropertyCreationMethod.InitAutoProperties();
+        });
+        // assert
+        var output = """
+            public record Root
+            {
+                public bool IsStudent { get; init; }
+
+                [JsonProperty("#address")]
+                public RootAddress Address { get; init; }
+                public List<double> Grades { get; init; }
+            }
+
+            public record RootAddress
+            {
+                public string Str2eet { get; init; }
+
+                [JsonProperty("1city")]
+                public string _1city { get; init; }
+
+                [JsonProperty("postal Code")]
+                public string PostalCode { get; init; }
+
+                [JsonProperty("residents ")]
+                public List<string> Residents { get; init; }
+            }
+            """;
+        csharp.AssertOutput(output);
     }
 }
 

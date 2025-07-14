@@ -10,7 +10,9 @@ namespace JsonToCSharpConverter0121.Internal;
 
 internal static class ParameterSyntaxExtensions
 {
-    public static ParameterSyntax AddJsonPropertyAttributeIfRequired(this ParameterSyntax parameterSyntax, string formattedPropertyName, string ogJsonName)
+    public static ParameterSyntax AddJsonPropertyAttributeIfRequired(
+        this ParameterSyntax parameterSyntax, 
+        string ogJsonName)
     {
         if (!ogJsonName.HasIllegalJsonChars())
         {
@@ -31,4 +33,33 @@ internal static class ParameterSyntaxExtensions
             );
         return parameterSyntax.AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(jsonPropertyAttr)));
     }
+
+    public static PropertyDeclarationSyntax AddJsonPropertyAttributeIfRequired(
+        this PropertyDeclarationSyntax propertySyntax,
+        string ogJsonName)
+    {
+        if (!ogJsonName.HasIllegalJsonChars())
+        {
+            return propertySyntax;
+        }
+
+        var jsonPropertyAttr = SyntaxFactory.Attribute(SyntaxFactory.ParseName("JsonProperty"))
+            .WithArgumentList(
+                SyntaxFactory.AttributeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.AttributeArgument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(ogJsonName)
+                            )
+                        )
+                    )
+                )
+            );
+
+        return propertySyntax.AddAttributeLists(
+            SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(jsonPropertyAttr))
+        );
+    }
+
 }

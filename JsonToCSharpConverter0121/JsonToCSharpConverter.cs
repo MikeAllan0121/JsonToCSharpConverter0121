@@ -29,7 +29,7 @@ public class JsonToCSharpConverter
 
         var jsonToCSharpConvert = JsonToCSharpConvert.Create(json, options);
 
-        return Result.Ok(string.Join("\n\n", jsonToCSharpConvert.RecordsOrdered.Values)); 
+        return Result.Ok(string.Join($"{Environment.NewLine}{Environment.NewLine}", jsonToCSharpConvert.RecordsOrdered.Values)); 
     }
 
 }
