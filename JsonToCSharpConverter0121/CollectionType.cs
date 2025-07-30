@@ -3,5 +3,7 @@
 public enum CollectionType
 {
     List,
-    ReadOnlyCollection
+    IList,
+    IEnumerable,
+    IReadOnlyCollection
 }

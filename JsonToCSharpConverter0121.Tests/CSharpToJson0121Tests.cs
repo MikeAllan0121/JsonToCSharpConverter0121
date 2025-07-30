@@ -212,8 +212,6 @@ public class CSharpToJson0121Tests
         var output = """
             public record Root(List<Users> Users, Metadata Metadata);
 
-            public record Metadata(string Version, string GeneratedAt, string Source);
-
             public record Users(
                 double Id,
                 string Name,
@@ -224,21 +222,23 @@ public class CSharpToJson0121Tests
                 List<Orders> Orders
             );
 
-            public record Orders(double OrderId, string Date, double Total, List<Items> Items);
-
-            public record Items(string ProductId, string Name, double Price);
+            public record Address(string Street, string City, string State, string PostalCode);
 
             public record Preferences(string Theme, Notifications Notifications);
 
             public record Notifications(bool Email, bool Sms, bool Push);
 
-            public record Address(string Street, string City, string State, string PostalCode);
+            public record Orders(double OrderId, string Date, double Total, List<Items> Items);
+
+            public record Items(string ProductId, string Name, double Price);
+
+            public record Metadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
 
     [Fact]
-    public void Execute_ReadOnlyCollection_Success()
+    public void Execute_IReadOnlyCollection_Success()
     {
         // arrange
         string json = """
@@ -276,16 +276,16 @@ public class CSharpToJson0121Tests
 """;
 
         // act
-        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.ReadOnlyCollections = CollectionType.ReadOnlyCollection);
+        var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.CollectionType = CollectionType.IReadOnlyCollection);
         // assert
         var output = """
-            public record Root(ReadOnlyCollection<Users> Users, Metadata Metadata);
-
-            public record Metadata(string Version, string GeneratedAt, string Source);
+            public record Root(IReadOnlyCollection<Users> Users, Metadata Metadata);
 
             public record Users(double Id, string Name, string Email, Address Address);
 
             public record Address(string Street, string City, string State, string PostalCode);
+
+            public record Metadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
@@ -334,11 +334,11 @@ public class CSharpToJson0121Tests
         var output = """
             public record Root(List<RootUsers> Users, RootMetadata Metadata);
 
-            public record RootMetadata(string Version, string GeneratedAt, string Source);
-
             public record RootUsers(double Id, string Name, string Email, RootUsersAddress Address);
 
             public record RootUsersAddress(string Street, string City, string State, string PostalCode);
+
+            public record RootMetadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
@@ -364,9 +364,9 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
         // assert
         var output = """
-            public record Root([JsonProperty("1isStudent")] bool _1isStudent, [JsonProperty("#address")] RootAddress Address, List<double> Grades);
+            public record Root([JsonPropertyName("1isStudent")] bool _1isStudent, [JsonPropertyName("#address")] RootAddress Address, List<double> Grades);
 
-            public record RootAddress(string Str2eet, [JsonProperty("1city")] string _1city, [JsonProperty("postal Code")] string PostalCode, [JsonProperty("residents ")] List<string> Residents);
+            public record RootAddress(string Str2eet, [JsonPropertyName("1city")] string _1city, [JsonPropertyName("postal Code")] string PostalCode, [JsonPropertyName("residents ")] List<string> Residents);
             """;
         csharp.AssertOutput(output);
     }
@@ -449,7 +449,7 @@ public class CSharpToJson0121Tests
             {
                 public bool IsStudent { get; init; }
 
-                [JsonProperty("#address")]
+                [JsonPropertyName("#address")]
                 public RootAddress Address { get; init; }
                 public List<double> Grades { get; init; }
             }
@@ -458,17 +458,196 @@ public class CSharpToJson0121Tests
             {
                 public string Str2eet { get; init; }
 
-                [JsonProperty("1city")]
+                [JsonPropertyName("1city")]
                 public string _1city { get; init; }
 
-                [JsonProperty("postal Code")]
+                [JsonPropertyName("postal Code")]
                 public string PostalCode { get; init; }
 
-                [JsonProperty("residents ")]
+                [JsonPropertyName("residents ")]
                 public List<string> Residents { get; init; }
             }
             """;
         csharp.AssertOutput(output);
     }
+
+    [Fact]
+    public void Execute_ValidJsonCollection_Success()
+    {
+        // arrange
+        string json = """
+    [
+        {
+            "name": "Alice",
+            "age": 25,
+            "height": 5.6,
+            "isStudent": false,
+            "hobbies": ["reading", "gaming", "swimming"],
+            "address": {
+                "street": "123 Main St",
+                "city": "London",
+                "postalCode": "SW1A 1AA",
+                "residents": ["Alice", "Bob", "Charlie"]
+            },
+            "grades": [85, 90, 78],
+            "metadata": null
+        },
+        {
+            "name": "Bob",
+            "age": 30,
+            "height": 5.9,
+            "isStudent": true,
+            "hobbies": ["climbing", "cycling"],
+            "address": {
+                "street": "456 High St",
+                "city": "Oxford",
+                "postalCode": "OX1 3AG",
+                "residents": ["Bob"]
+            },
+            "grades": [88, 92],
+            "metadata": null
+        }
+    ]
+    """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(
+            string Name,
+            double Age,
+            double Height,
+            bool IsStudent,
+            List<string> Hobbies,
+            Address Address,
+            List<double> Grades,
+            object Metadata
+        );
+
+        public record Address(string Street, string City, string PostalCode, List<string> Residents);
+        """;
+
+        csharp.AssertOutput(output);
+    }
+    [Fact]
+    public void Execute_MultipleObjects_DetectUnionOfProperties()
+    {
+        // arrange
+        string json = """
+    [
+        { "name": "Alice" },
+        { "age": 30 }
+    ]
+    """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(string Name, double Age);
+        """;
+
+        csharp.AssertOutput(output);
+    }
+
+    [Fact]
+    public void Execute_ChildObjects_DetectUnionOfProperties()
+    {
+        // arrange
+        string json = """
+        [
+            { "profile": { "firstName": "Alice" } },
+            { "profile": { "age": 30 } }
+        ]
+        """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(Profile Profile);
+
+        public record Profile(string FirstName, double Age);
+        """;
+
+        csharp.AssertOutput(output);
+    }
+
+    [Fact]
+    public void Execute_DynamicSimpleType_SetToObject()
+    {
+        // arrange
+        string json = """
+    [
+        { "profile": "Fair" },
+        { "profile": 3 }
+    ]
+    """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(object Profile);
+        """;
+
+        csharp.AssertOutput(output);
+    }
+
+
+    [Fact]
+    public void Execute_DynamicSimpleTypeAndComplex_SetToObject()
+    {
+        // arrange
+        string json = """
+    [
+        { "profile": "Fair" },
+        { "profile": { "age": 30 } }
+    ]
+    """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(object Profile);
+
+        public record Profile(double Age);
+        """;
+
+        csharp.AssertOutput(output);
+    }
+
+    [Fact]
+    public void Execute_InvalidJson_InvalidReturn()
+    {
+        // arrange
+        string json = """
+    [
+        { "profile": "Fair" },
+        { "profile": { "age
+    ]
+    """;
+
+        // act
+        var csharp = JsonToCSharpConverter.CreateFullText(json);
+
+        // assert
+        var output = """
+        public record Root(object Profile);
+
+        public record Profile(double Age);
+        """;
+
+        Assert.True(csharp.IsFailed);
+    }
 }
+
+
 

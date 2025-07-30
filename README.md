@@ -49,7 +49,7 @@ var result = JsonToCSharpConverter.CreateFullText(json, options =>
 | `Nullable`           | Specifies how nullable properties are handled    |
 | `RootRecordName`     | Sets the name of the root record                 |
 | `PropertyCreationMethod` | Determines how properties are generated (e.g., as positional parameters or init-only properties) and controls formatting such asmultiline layout based on property count |
-| `ReadOnlyCollections` | Defines the collection type used for read-only properties (List or ReadOnlyCollection) |
+| `CollectionType` | Defines the collection type used where a collection is required |
 | `TypeNamingConvention` | Specifies how type names should be generated (PropertyName or NestedPositionName) |
 
 

@@ -1,0 +1,3 @@
+﻿namespace JsonToCSharpConverter0121.Internal.Records;
+
+public record RecordCreationOptions(PropertyCreationMethod PropertyCreationMethod, Nullable Nullable, CollectionType CollectionType);
