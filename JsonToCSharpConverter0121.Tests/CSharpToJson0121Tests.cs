@@ -364,9 +364,29 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
         // assert
         var output = """
-            public record Root([JsonPropertyName("1isStudent")] bool _1isStudent, [JsonPropertyName("#address")] RootAddress Address, List<double> Grades);
+            public record Root
+            {
+                [JsonPropertyName("1isStudent")]
+                public bool _1isStudent { get; init; }
 
-            public record RootAddress(string Str2eet, [JsonPropertyName("1city")] string _1city, [JsonPropertyName("postal Code")] string PostalCode, [JsonPropertyName("residents ")] List<string> Residents);
+                [JsonPropertyName("#address")]
+                public RootAddress Address { get; init; }
+                public List<double> Grades { get; init; }
+            }
+
+            public record RootAddress
+            {
+                public string Str2eet { get; init; }
+
+                [JsonPropertyName("1city")]
+                public string _1city { get; init; }
+
+                [JsonPropertyName("postal Code")]
+                public string PostalCode { get; init; }
+
+                [JsonPropertyName("residents ")]
+                public List<string> Residents { get; init; }
+            }
             """;
         csharp.AssertOutput(output);
     }
