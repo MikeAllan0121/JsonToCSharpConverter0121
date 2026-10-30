@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "description": "Converts JSON to C# record definitions.",
+  "name": "io.github.MikeAllan0121/JsonToCSharpConverter0121",
+  "version": "3.0.0",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "JsonToCSharpConverter0121.Mcp",
+      "version": "3.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": []
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/MikeAllan0121/JsonToCSharpConverter0121",
+    "source": "github"
+  }
+}

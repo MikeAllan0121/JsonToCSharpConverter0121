@@ -25,7 +25,7 @@ internal record Record(NameBuilder Name)
     {
         var propertyDeclarations = Properties.Select(e => e.CreateParameterInitAutoProperty(options));
         return SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier(Name.FullCsharpName))
-            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword))
             .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
             .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(propertyDeclarations))
             .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
@@ -61,7 +61,7 @@ internal record Record(NameBuilder Name)
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithLeadingTrivia(SyntaxFactory.CarriageReturnLineFeed)
                 );
         return SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier(Name.FullCsharpName))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword)))
             .NormalizeWhitespace(elasticTrivia: true)
             .WithParameterList(parameterList)
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));

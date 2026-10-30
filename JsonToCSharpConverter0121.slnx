@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="JsonToCSharpConverter0121.Mcp/JsonToCSharpConverter0121.Mcp.csproj" />
+  <Project Path="JsonToCSharpConverter0121.Tests/JsonToCSharpConverter0121.Tests.csproj" />
+  <Project Path="JsonToCSharpConverter0121/JsonToCSharpConverter0121.csproj" />
+</Solution>

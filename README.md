@@ -64,7 +64,7 @@ Given the JSON:
 ```
 
 ```csharp
-public record Root(string Name, int Age);
+public sealed record Root(string Name, int Age);
 ```
 
 ## Contributing

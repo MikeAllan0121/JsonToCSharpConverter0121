@@ -1,4 +1,4 @@
-﻿using Extensions0121.Result0121;
+﻿using Extensions0121.Results;
 
 namespace JsonToCSharpConverter0121.Tests;
 
@@ -30,7 +30,7 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json);
         // assert
         var output = """
-            public record Root(
+            public sealed record Root(
                 string Name,
                 double Age,
                 double Height,
@@ -41,7 +41,7 @@ public class CSharpToJson0121Tests
                 object Metadata
             );
 
-            public record Address(string Street, string City, string PostalCode, List<string> Residents);
+            public sealed record Address(string Street, string City, string PostalCode, List<string> Residents);
             """;
         csharp.AssertOutput(output);
     }
@@ -73,7 +73,7 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-            public record Root(
+            public sealed record Root(
                 string? Name,
                 double? Age,
                 double? Height,
@@ -84,7 +84,7 @@ public class CSharpToJson0121Tests
                 object? Metadata
             );
 
-            public record Address(string? Street, string? City, string? PostalCode, List<string>? Residents);
+            public sealed record Address(string? Street, string? City, string? PostalCode, List<string>? Residents);
             """;
         csharp.AssertOutput(output);
     }
@@ -117,9 +117,9 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-            public record Root(string Name, double Age, double Height, bool IsStudent, List<string> Hobbies, Address Address, List<double> Grades, object Metadata);
+            public sealed record Root(string Name, double Age, double Height, bool IsStudent, List<string> Hobbies, Address Address, List<double> Grades, object Metadata);
 
-            public record Address(string Street, string City, string PostalCode, List<string> Residents);
+            public sealed record Address(string Street, string City, string PostalCode, List<string> Residents);
             """;
         csharp.AssertOutput(output);
     }
@@ -210,9 +210,9 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json);
         // assert
         var output = """
-            public record Root(List<Users> Users, Metadata Metadata);
+            public sealed record Root(List<Users> Users, Metadata Metadata);
 
-            public record Users(
+            public sealed record Users(
                 double Id,
                 string Name,
                 string Email,
@@ -222,17 +222,17 @@ public class CSharpToJson0121Tests
                 List<Orders> Orders
             );
 
-            public record Address(string Street, string City, string State, string PostalCode);
+            public sealed record Address(string Street, string City, string State, string PostalCode);
 
-            public record Preferences(string Theme, Notifications Notifications);
+            public sealed record Preferences(string Theme, Notifications Notifications);
 
-            public record Notifications(bool Email, bool Sms, bool Push);
+            public sealed record Notifications(bool Email, bool Sms, bool Push);
 
-            public record Orders(double OrderId, string Date, double Total, List<Items> Items);
+            public sealed record Orders(double OrderId, string Date, double Total, List<Items> Items);
 
-            public record Items(string ProductId, string Name, double Price);
+            public sealed record Items(string ProductId, string Name, double Price);
 
-            public record Metadata(string Version, string GeneratedAt, string Source);
+            public sealed record Metadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
@@ -279,13 +279,13 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.CollectionType = CollectionType.IReadOnlyCollection);
         // assert
         var output = """
-            public record Root(IReadOnlyCollection<Users> Users, Metadata Metadata);
+            public sealed record Root(IReadOnlyCollection<Users> Users, Metadata Metadata);
 
-            public record Users(double Id, string Name, string Email, Address Address);
+            public sealed record Users(double Id, string Name, string Email, Address Address);
 
-            public record Address(string Street, string City, string State, string PostalCode);
+            public sealed record Address(string Street, string City, string State, string PostalCode);
 
-            public record Metadata(string Version, string GeneratedAt, string Source);
+            public sealed record Metadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
@@ -332,13 +332,13 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
         // assert
         var output = """
-            public record Root(List<RootUsers> Users, RootMetadata Metadata);
+            public sealed record Root(List<RootUsers> Users, RootMetadata Metadata);
 
-            public record RootUsers(double Id, string Name, string Email, RootUsersAddress Address);
+            public sealed record RootUsers(double Id, string Name, string Email, RootUsersAddress Address);
 
-            public record RootUsersAddress(string Street, string City, string State, string PostalCode);
+            public sealed record RootUsersAddress(string Street, string City, string State, string PostalCode);
 
-            public record RootMetadata(string Version, string GeneratedAt, string Source);
+            public sealed record RootMetadata(string Version, string GeneratedAt, string Source);
             """;
         csharp.AssertOutput(output);
     }
@@ -364,7 +364,7 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.TypeNamingConvention = TypeNamingConvention.NestedPositionName);
         // assert
         var output = """
-            public record Root
+            public sealed record Root
             {
                 [JsonPropertyName("1isStudent")]
                 public bool _1isStudent { get; init; }
@@ -374,7 +374,7 @@ public class CSharpToJson0121Tests
                 public List<double> Grades { get; init; }
             }
 
-            public record RootAddress
+            public sealed record RootAddress
             {
                 public string Str2eet { get; init; }
 
@@ -389,6 +389,7 @@ public class CSharpToJson0121Tests
             }
             """;
         csharp.AssertOutput(output);
+        Assert.NotEmpty(csharp.Warnings);
     }
 
     [Fact]
@@ -417,7 +418,7 @@ public class CSharpToJson0121Tests
         var csharp = JsonToCSharpConverter.CreateFullText(json, opt => opt.PropertyCreationMethod = PropertyCreationMethod.InitAutoProperties());
         // assert
         var output = """
-            public record Root
+            public sealed record Root
             {
                 public string Name { get; init; }
                 public double Age { get; init; }
@@ -429,7 +430,7 @@ public class CSharpToJson0121Tests
                 public object Metadata { get; init; }
             }
 
-            public record Address
+            public sealed record Address
             {
                 public string Street { get; init; }
                 public string City { get; init; }
@@ -465,7 +466,7 @@ public class CSharpToJson0121Tests
         });
         // assert
         var output = """
-            public record Root
+            public sealed record Root
             {
                 public bool IsStudent { get; init; }
 
@@ -474,7 +475,7 @@ public class CSharpToJson0121Tests
                 public List<double> Grades { get; init; }
             }
 
-            public record RootAddress
+            public sealed record RootAddress
             {
                 public string Str2eet { get; init; }
 
@@ -535,7 +536,7 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(
+        public sealed record Root(
             string Name,
             double Age,
             double Height,
@@ -546,7 +547,7 @@ public class CSharpToJson0121Tests
             object Metadata
         );
 
-        public record Address(string Street, string City, string PostalCode, List<string> Residents);
+        public sealed record Address(string Street, string City, string PostalCode, List<string> Residents);
         """;
 
         csharp.AssertOutput(output);
@@ -567,7 +568,7 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(string Name, double Age);
+        public sealed record Root(string Name, double Age);
         """;
 
         csharp.AssertOutput(output);
@@ -589,9 +590,9 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(Profile Profile);
+        public sealed record Root(Profile Profile);
 
-        public record Profile(string FirstName, double Age);
+        public sealed record Profile(string FirstName, double Age);
         """;
 
         csharp.AssertOutput(output);
@@ -613,7 +614,7 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(object Profile);
+        public sealed record Root(object Profile);
         """;
 
         csharp.AssertOutput(output);
@@ -636,9 +637,9 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(object Profile);
+        public sealed record Root(object Profile);
 
-        public record Profile(double Age);
+        public sealed record Profile(double Age);
         """;
 
         csharp.AssertOutput(output);
@@ -660,9 +661,9 @@ public class CSharpToJson0121Tests
 
         // assert
         var output = """
-        public record Root(object Profile);
+        public sealed record Root(object Profile);
 
-        public record Profile(double Age);
+        public sealed record Profile(double Age);
         """;
 
         Assert.True(csharp.IsFailed);

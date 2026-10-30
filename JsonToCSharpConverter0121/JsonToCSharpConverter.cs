@@ -1,4 +1,4 @@
-﻿using Extensions0121.Result0121;
+﻿using Extensions0121.Results;
 using JsonToCSharpConverter0121.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -61,6 +61,6 @@ public class JsonToCSharpConverter
         var jsonToCSharpConvert = JsonToCSharpConvert.Create(options)
             .Convert(json);
 
-        return Result.Ok(jsonToCSharpConvert);
+        return jsonToCSharpConvert;
     }
 }

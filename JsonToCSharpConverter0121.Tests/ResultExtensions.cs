@@ -1,4 +1,4 @@
-﻿using Extensions0121.Result0121;
+﻿using Extensions0121.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +15,6 @@ internal static class ResultExtensions
     {
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
-        Assert.Equal(expectedOutput, result.Value);
+        Assert.Equal(expectedOutput.Replace("\r\n", "\n"), result.Value?.Replace("\r\n", "\n"));
     }
 }

@@ -1,4 +1,5 @@
-﻿using JsonToCSharpConverter0121.Internal.Records;
+﻿using Extensions0121.Results;
+using JsonToCSharpConverter0121.Internal.Records;
 using JsonToCSharpConverter0121.Internal.Records.Properties;
 using Microsoft.Extensions.Options;
 using System;
@@ -18,7 +19,7 @@ internal class JsonToCSharpConvert
         _options = options;
     }
     public static JsonToCSharpConvert Create(CSharpToJson0121Options options) => new(options);
-    public string Convert(string json)
+    public Result<string> Convert(string json)
     {
         var options = new RecordOptions(_options.RootRecordName, _options.TypeNamingConvention);
         using var doc = JsonDocument.Parse(json);
@@ -26,7 +27,7 @@ internal class JsonToCSharpConvert
 
         if (!IfPositionalParametersThenIsValid(result))
         {
-            return ForceInitAutoProperties(doc);
+            return Result.Ok<string>(ForceInitAutoProperties(doc), $"C# object requires JsonPropertyName. {nameof(PropertyCreationType)} cannot be {nameof(PropertyCreationType.PositionalParameters)}. Setting {nameof(PropertyCreationType)} to {nameof(PropertyCreationType.InitAutoProperties)}");
         }
         return GenerateCSharpText(result);
     }
