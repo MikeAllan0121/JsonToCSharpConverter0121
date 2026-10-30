@@ -21,7 +21,6 @@
     <!-- Set recommended package metadata -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>JsonToCSharpConverter0121.Mcp</PackageId>
-    <PackageVersion>3.0.0</PackageVersion>
     <PackageTags>AI; MCP; server; stdio; json; csharp; records</PackageTags>
     <Authors>MikeAllan0121</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

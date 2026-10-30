@@ -44,9 +44,9 @@ public class JsonToRecordsTests
         Assert.Equal("Name", nameProp.Name.CsharpName);
 
         // Assert for "Age"
-        var ageProp = simpleProps.FirstOrDefault(p => p.Type == "double" && p.Name.CsharpName == "Age");
+        var ageProp = simpleProps.FirstOrDefault(p => p.Type == "int" && p.Name.CsharpName == "Age");
         Assert.NotNull(ageProp);
-        Assert.Equal("double", ageProp.Type);
+        Assert.Equal("int", ageProp.Type);
         Assert.Equal("Age", ageProp.Name.CsharpName);
 
         // Assert for "IsStudent"
@@ -108,9 +108,9 @@ public class JsonToRecordsTests
         Assert.Equal("Metadata", rootComplexMetadata.Name.CsharpName);
 
         // User properties
-        var userSimpleId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "double" && p.Name.CsharpName == "Id");
+        var userSimpleId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "int" && p.Name.CsharpName == "Id");
         Assert.NotNull(userSimpleId);
-        Assert.Equal("double", userSimpleId.Type);
+        Assert.Equal("int", userSimpleId.Type);
         Assert.Equal("Id", userSimpleId.Name.CsharpName);
 
         var userComplexProfile = user.Properties.OfType<ComplexProperty>().FirstOrDefault(p => p.Name.CsharpName == "Profile");
@@ -203,9 +203,9 @@ public class JsonToRecordsTests
         Assert.Equal("Tags", rootTags.Name.CsharpName);
 
         // User properties
-        var userId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "double" && p.Name.CsharpName == "Id");
+        var userId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "int" && p.Name.CsharpName == "Id");
         Assert.NotNull(userId);
-        Assert.Equal("double", userId.Type);
+        Assert.Equal("int", userId.Type);
         Assert.Equal("Id", userId.Name.CsharpName);
 
         var userProfile = user.Properties.OfType<ComplexProperty>().FirstOrDefault(p => p.Name.CsharpName == "Profile");
@@ -282,9 +282,9 @@ public class JsonToRecordsTests
         Assert.NotNull(record); // sanity check
 
         // Record properties
-        var recordId = record.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "double" && p.Name.CsharpName == "Id");
+        var recordId = record.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "int" && p.Name.CsharpName == "Id");
         Assert.NotNull(recordId);
-        Assert.Equal("double", recordId.Type);
+        Assert.Equal("int", recordId.Type);
         Assert.Equal("Id", recordId.Name.CsharpName);
 
         var recordName = record.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "string" && p.Name.CsharpName == "Name");
@@ -347,9 +347,9 @@ public class JsonToRecordsTests
         Assert.NotNull(user);
         Assert.Equal("User", user.Name.CsharpName);
 
-        var userId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "double" && p.Name.CsharpName == "Id");
+        var userId = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "int" && p.Name.CsharpName == "Id");
         Assert.NotNull(userId);
-        Assert.Equal("double", userId.Type);
+        Assert.Equal("int", userId.Type);
         Assert.Equal("Id", userId.Name.CsharpName);
 
         var userName = user.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Type == "string" && p.Name.CsharpName == "Name");
@@ -447,10 +447,10 @@ public class JsonToRecordsTests
         Assert.Equal("Inner", outerInner.Name.CsharpName);
 
         // Inner should have a simple property "Value"
-        var innerValue = inner.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Name.CsharpName == "Value" && p.Type == "double");
+        var innerValue = inner.Properties.OfType<SimpleProperty>().FirstOrDefault(p => p.Name.CsharpName == "Value" && p.Type == "int");
         Assert.NotNull(innerValue);
         Assert.Equal("Value", innerValue.Name.CsharpName);
-        Assert.Equal("double", innerValue.Type);
+        Assert.Equal("int", innerValue.Type);
     }
 
 }

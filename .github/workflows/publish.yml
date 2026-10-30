@@ -1,5 +1,5 @@
-# Publishes the MCP server packages to nuget.org using Trusted Publishing (no long-lived API key).
-# Release by pushing a tag such as v3.0.0 (see README "Releasing").
+# Publishes the library and MCP server packages to nuget.org using Trusted Publishing (no long-lived API key).
+# Release by pushing a tag such as v3.1.0 (see README "Releasing").
 name: Publish to NuGet
 
 on:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: windows-latest   # builds all 7 packages (main + 6 per-RID)
+    runs-on: windows-latest   # builds all 8 packages (library + Mcp main + 6 per-RID)
     permissions:
       contents: read
       id-token: write         # lets NuGet/login request a GitHub OIDC token
@@ -27,16 +27,27 @@ jobs:
       - run: dotnet build JsonToCSharpConverter0121.slnx -c Release --no-restore
       - run: dotnet test JsonToCSharpConverter0121.slnx -c Release --no-build
 
-      # On tag builds, the tag (v3.0.0) must match the csproj PackageVersion (3.0.0).
-      - name: Verify tag matches PackageVersion
+      # On tag builds, the tag (v3.1.0) must match the shared version (Directory.Build.props)
+      # as seen by BOTH packages, and the MCP registry manifest must agree.
+      - name: Verify tag matches package versions
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
-          $version = ([xml](Get-Content JsonToCSharpConverter0121.Mcp/JsonToCSharpConverter0121.Mcp.csproj)).Project.PropertyGroup.PackageVersion | Where-Object { $_ } | Select-Object -First 1
           $tag = '${{ github.ref_name }}'.TrimStart('v')
-          if ($version -ne $tag) { throw "Tag '$tag' does not match PackageVersion '$version'" }
+          foreach ($proj in 'JsonToCSharpConverter0121/JsonToCSharpConverter0121.csproj', 'JsonToCSharpConverter0121.Mcp/JsonToCSharpConverter0121.Mcp.csproj') {
+            $version = (dotnet msbuild $proj -getProperty:PackageVersion -p:Configuration=Release).Trim()
+            if ($version -ne $tag) { throw "Tag '$tag' does not match PackageVersion '$version' of $proj" }
+          }
+          $server = Get-Content JsonToCSharpConverter0121.Mcp/.mcp/server.json -Raw | ConvertFrom-Json
+          $versions = @($server.version) + @($server.packages | ForEach-Object { $_.version })
+          foreach ($v in $versions) {
+            if ($v -ne $tag) { throw "Tag '$tag' does not match .mcp/server.json version '$v'" }
+          }
 
-      # Produces the main package plus one package per runtime identifier.
+      # Library package (explicit, not a build side effect).
+      - run: dotnet pack JsonToCSharpConverter0121/JsonToCSharpConverter0121.csproj -c Release --no-build -o artifacts
+
+      # Mcp: produces the main package plus one package per runtime identifier.
       - run: dotnet pack JsonToCSharpConverter0121.Mcp/JsonToCSharpConverter0121.Mcp.csproj -c Release -o artifacts
 
       # Request the short-lived key as late as possible (it expires after 1 hour).
@@ -46,16 +57,17 @@ jobs:
         with:
           user: ${{ vars.NUGET_USER }}   # nuget.org profile name, not email
 
-      # Push the per-RID packages first so the main package's dependencies exist when it is published.
+      # Order: library, per-RID Mcp packages, main Mcp package last (its dependencies must exist first).
       - name: NuGet push
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
           $all = Get-ChildItem artifacts -Filter *.nupkg
+          $lib = $all | Where-Object { $_.Name -match '^JsonToCSharpConverter0121\.\d' }
           $main = $all | Where-Object { $_.Name -match '^JsonToCSharpConverter0121\.Mcp\.\d' }
-          $rid = $all | Where-Object { $_.Name -notmatch '^JsonToCSharpConverter0121\.Mcp\.\d' }
-          foreach ($pkg in @($rid) + @($main)) {
+          $rid = $all | Where-Object { $_.Name -notmatch '^JsonToCSharpConverter0121\.\d' -and $_.Name -notmatch '^JsonToCSharpConverter0121\.Mcp\.\d' }
+          foreach ($pkg in @($lib) + @($rid) + @($main)) {
             dotnet nuget push $pkg.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
             if ($LASTEXITCODE -ne 0) { throw "Push failed: $($pkg.Name)" }
           }

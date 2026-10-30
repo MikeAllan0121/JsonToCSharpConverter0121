@@ -1,18 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>A simple utility for converting JSON structures into C# record declarations. This tool helps developers generate strongly typed C# objects.</Description>
-    <Authors>Mike Allan</Authors>
-    <Summary>Converting JSON structures into C# records.</Summary>
+
+    <!-- NuGet package metadata (Version comes from the root Directory.Build.props) -->
     <PackageId>JsonToCSharpConverter0121</PackageId>
-    <Version>2</Version>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>MikeAllan0121</Authors>
+    <Description>A simple utility for converting JSON structures into C# record declarations. This tool helps developers generate strongly typed C# objects.</Description>
+    <Summary>Converting JSON structures into C# records.</Summary>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Summary>Converting JSON structures into C# records</Summary>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/MikeAllan0121/JsonToCSharpConverter0121</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/MikeAllan0121/JsonToCSharpConverter0121</PackageProjectUrl>
+    <PackageTags>json; csharp; records; converter; code-generation</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,11 +26,8 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.12" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

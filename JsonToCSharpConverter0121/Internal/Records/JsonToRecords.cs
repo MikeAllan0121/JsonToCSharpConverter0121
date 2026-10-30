@@ -28,7 +28,7 @@ internal class JsonToRecords
     private IProperty GetProperty(JsonProperty element, NameBuilder nameBuilder) => element.Value.ValueKind switch
     {
         JsonValueKind.String => new SimpleProperty(nameBuilder, "string"),
-        JsonValueKind.Number => new SimpleProperty(nameBuilder, "double"),
+        JsonValueKind.Number => new SimpleProperty(nameBuilder, NumberType(element.Value)),
         JsonValueKind.True or JsonValueKind.False => new SimpleProperty(nameBuilder, "bool"),
         JsonValueKind.Array => ElementIsAnArray(element, nameBuilder),
         JsonValueKind.Object => new ComplexProperty(nameBuilder, CreateRecord(element, nameBuilder)),
@@ -38,10 +38,15 @@ internal class JsonToRecords
     private IProperty GetProperty(JsonElement element, NameBuilder nameBuilder, CollectionSetting isCollection) => element.ValueKind switch
     {
         JsonValueKind.String => new SimpleProperty(nameBuilder, "string", isCollection),
-        JsonValueKind.Number => new SimpleProperty(nameBuilder, "double", isCollection),
+        JsonValueKind.Number => new SimpleProperty(nameBuilder, NumberType(element), isCollection),
         JsonValueKind.True or JsonValueKind.False => new SimpleProperty(nameBuilder, "bool"),
         _ => new DynamicProperty(nameBuilder)
     };
+
+    // int when the raw JSON number is an integer within Int32 range (no fraction/exponent), otherwise double.
+    private static string NumberType(JsonElement number) => number.TryGetInt32(out _) ? "int" : "double";
+
+    private static bool IsNumeric(SimpleProperty p) => p.Type is "int" or "double";
 
     private IProperty ElementIsAnArray(JsonProperty element, NameBuilder nameBuilder)
     {
@@ -64,6 +69,11 @@ internal class JsonToRecords
         if(complex.Count > 0)
         {
             return new ComplexProperty(nameBuilder, complex.First(), CollectionSetting.IsCollection);
+        }
+        if (simple.Count > 0 && simple.All(s => s is SimpleProperty sp && IsNumeric(sp)))
+        {
+            var numbers = simple.Cast<SimpleProperty>().ToList();
+            return numbers.Any(s => s.Type == "double") ? numbers[0] with { Type = "double" } : numbers[0];
         }
         if(simple.Count > 0 && simple.All(s => s.PropertyType == simple.First().PropertyType))
         {
@@ -98,6 +108,15 @@ internal class JsonToRecords
         var nameBuilder = record.Name.ExtendNameBuilder(childProp.Name);
         var newProperty = CreateProperty(childProp, nameBuilder);
         var nameMatched = record.Properties.FirstOrDefault(p => p.Name == newProperty.Name);
+        if (nameMatched is SimpleProperty om && newProperty is SimpleProperty nw && IsNumeric(om) && IsNumeric(nw))
+        {
+            if (om.Type != nw.Type)
+            {
+                var index = record.Properties.IndexOf(om);
+                record.Properties[index] = om with { Type = "double" };
+            }
+            return;
+        }
         if (
             nameMatched is not null
             && (newProperty.GetType() != nameMatched.GetType()

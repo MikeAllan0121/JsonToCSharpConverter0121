@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of truth: the library and the Mcp packages always share this version. -->
+    <Version>3.1.0</Version>
+  </PropertyGroup>
+</Project>
